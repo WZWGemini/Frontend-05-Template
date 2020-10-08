@@ -233,8 +233,15 @@ export default {
            */
           disable.value = true;
           console.log(`玩家${role.value}赢了！`)
+        } else {
+          role.value = [2, 1][role.value - 1];
+          if(checkWin(pattern, role.value, 2)) {
+            /**
+             * will win
+             */
+            console.log(`玩家${role.value}将要赢了！`)
+          }
         }
-        role.value = [2, 1][role.value - 1];
       }
     }
 
