@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>map</title>
+  <style>
+    #map {
+      width: 1000px;
+      height: 1000px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .cell {
+      margin: 1px;
+      box-sizing: border-box;
+      width: 8px;
+      height: 8px;
+      border: 1px solid #999;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <script>
+    const map = new Array(10000).fill(0);
+    const container = document.getElementById("map");
+    function draw(map) {
+      map.forEach((v, i) => {
+        const ele = document.createElement("div");
+        ele.className = "cell"
+        ele.dataset.index = i;
+        ele.style.backgroundColor = ["", "black", "red"][v];
+        // ele.innerText = i;
+        container.appendChild(ele);
+      });
+    }
+    draw(map);
+    let isDraw = false;
+    let isClear = false;
+
+    function handleMouseDown(e) {
+      if (e.which === 3) {
+        isClear = true;
+      } else {
+        isDraw = true;
+      }
+    }
+
+    function handleMouseUp() {
+      isDraw = false;
+      isClear = false;
+    }
+
+    function handleMouseMove(e) {
+      const ele = e.target;
+      if (ele.className === "cell") {
+        if (isDraw) {
+          ele.style.backgroundColor = "black";
+          map[parseInt(ele.dataset.index)] = 1;
+        } else if (isClear) {
+          ele.style.backgroundColor = "";
+          map[parseInt(ele.dataset.index)] = 0;
+        }
+      }
+    }
+    container.addEventListener("mousedown", handleMouseDown);
+    container.addEventListener("mouseup", handleMouseUp);
+    container.addEventListener("mousemove", handleMouseMove);
+    container.addEventListener("contextmenu", (e) => e.preventDefault());
+    
+    /**
+      广度优先
+    */
+    async function sleep(time) {
+      return new Promise((resolve) => {
+        setTimeout(resolve, time);
+      })
+    }
+    async function findPath(map, start, end) {
+      let table = [...map];
+      let queue = [start];
+      function insert(x, y, prePoint) {
+        if (x < 0 || y < 0 || x >= 100 || y >= 100 || map[x + y * 100]) return;
+        map[x + y * 100] = 2;
+        table[x + y * 100] = prePoint;
+        container.children[x + y * 100].style.backgroundColor = "gray";
+        queue.push({x, y});
+      }
+      while (queue.length) {
+        let point = queue.shift();
+        if (point.x === end.x && point.y === end.y) {
+          let path = [];
+          while (point.x !== start.x || point.y !== start.y) {
+            path.push(table[point.x+ point.y * 100])
+            point = table[point.x+ point.y * 100];
+            container.children[point.x + point.y * 100].style.backgroundColor = "red";
+            await sleep(10);
+          }
+          return path;
+        };
+        insert(point.x + 1 , point.y, point);
+        insert(point.x - 1, point.y, point);
+        insert(point.x, point.y - 1, point);
+        insert(point.x, point.y + 1, point);
+
+        insert(point.x - 1 , point.y - 1, point);
+        insert(point.x - 1, point.y + 1, point);
+        insert(point.x + 1, point.y - 1, point);
+        insert(point.x + 1, point.y + 1, point);
+      }
+    }
+    
+  </script>
+</body>
+
+</html>
