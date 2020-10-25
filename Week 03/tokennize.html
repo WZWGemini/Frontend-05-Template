@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    /**
+     * 运算符AST正则分析
+     */
+
+    let reg = /([0-9]+(.[0-9]+)?)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+    /**
+     * () 正则中可代表捕获
+     */
+
+    let dictionary = ["", "Number", "", "WhiteSpace", "LineTerminator", "*", "/", "+", "-"]; // 数字 空白符 行终止符 操作符
+
+    function* tokenize(source) {
+      let result = null;
+      let lastIndex = 0;
+      while (true) {
+        lastIndex = reg.lastIndex;
+        result = reg.exec(source);
+        /**
+         * result的返回 result[0] 匹配到的value
+         * result[1-7] 代表reg中() 所捕获的value, 如果为空代表此处未捕获 
+         * 注意：嵌套的()
+         * eg: reg.exec("\n 1 + 1")
+         * ["↵", undefined, undefined, "↵", undefined, undefined, undefined, undefined, index: 0, input: "↵. + 1", groups: undefined]
+         * result[3]代表着第三个捕获的value
+         */
+        if (!result) break; // 结束
+        if (reg.lastIndex - lastIndex > result[0].length) break;
+        /**
+         *  如果匹配到不认识的字符 则也break;
+         *  Question: 按道理就算source中是有包含不认识的字符, 也不会触发这个条件, 因为不会被匹配到
+         */
+        let token = null;
+        dictionary.find((v, i) => {
+          if (v && result[i]) {
+            token = {
+              type: v,
+              value: result[i],
+            };
+            return true;
+          }
+        });
+        if (token) {
+          yield token;
+        }
+        // console.log(result);
+      }
+      yield {
+        type: "EOF", // End Of File
+      }
+    }
+    // for (const token of tokenize("1024 + 10 * 25")) {
+    //   console.log(token);
+    // }
+
+
+    /**
+     * 乘法表达式 语法
+     * 不断的遍历source
+     * 单个Number 可以视作 MultiplicativeExpression, number * 1
+     * MultiplicativeExpression * Expression 组成新的 MultiplicativeExpression
+     * / 同上
+     * 
+     */
+    function MultiplicativeExpression(source) {
+      if (source[0].type === "Number") { // 把单纯的数字处理成 乘法
+        source[0] = {
+          type: "MultiplicativeExpression",
+          children: [source[0]]
+        };
+        return MultiplicativeExpression(source);
+      }
+      if ((source[0].type === "MultiplicativeExpression" || source[0].type === "AdditiveExpression") && source[1] && (source[1].type === "*" || source[1].type === "/")) {
+        /**
+         * 目前基本没有处理异常情况, 没有校验合法性
+         */
+        source.unshift({
+          type: "MultiplicativeExpression",
+          operator: source[1].type,
+          children: [source.shift(), source.shift(), source.shift()]
+        });
+        return MultiplicativeExpression(source);
+      }
+      if (source[0].type === "MultiplicativeExpression") {
+        return source;
+      };
+    };
+
+    // console.log(MultiplicativeExpression([...tokenize("10 * 25 / 2")].filter((v) => {
+    //   return v.type !== "WhiteSpace" &&  v.type !== "LineTerminator"
+    // })));
+
+    /**
+     * 加法表达式 语法
+     * 单个MultiplicativeExpression, 可视作 一个 AdditiveExpression
+     */
+     function AdditiveExpression(source) {
+      if (source[0].type === "MultiplicativeExpression") { // 把乘法处理成加法
+        source[0] = {
+          type: "AdditiveExpression",
+          children: [source[0]]
+        };
+        return AdditiveExpression(source);
+      };
+      if (source[0].type === "AdditiveExpression" && source[1] && (source[1].type === "+" || source[1].type === "-")) {
+        /**
+         * 目前基本没有处理异常情况, 没有校验合法性
+         */
+        source.unshift({
+          type: "AdditiveExpression",
+          operator: source[1].type,
+          children: [source.shift(), source.shift(), MultiplicativeExpression(source).shift()],
+        });
+        return AdditiveExpression(source);
+      };
+      if (source[0].type === "AdditiveExpression" && source[1].type === "EOF") {
+        return source;
+      };
+      return AdditiveExpression(MultiplicativeExpression(source));
+    };
+
+    // console.log(AdditiveExpression([...tokenize("1024 + 2048 - 3072")].filter((v) => {
+    //   return v.type !== "WhiteSpace" &&  v.type !== "LineTerminator"
+    // })));
+
+    /**
+     * 统一表达式
+     */
+     function Expression(source) {
+      if (source[0].type === "AdditiveExpression" && source[1] && source[1].type === "EOF") { // 把乘法处理成加法
+        source = {
+          type: "Expression",
+          children: source,
+        };
+        return source;
+      };
+      return Expression(AdditiveExpression(source));
+    };
+
+    console.log(Expression([...tokenize("2 + 1 * 2 + 1 * 3")].filter((v) => {
+      return v.type !== "WhiteSpace" &&  v.type !== "LineTerminator"
+    })));
+
+  </script>
+</body>
+
+</html>
