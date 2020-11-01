@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trie</title>
+</head>
+<body>
+  <script>
+    /**
+     * 字典树
+     */
+    const $ = Symbol("$"); // 结束符
+    class Trie {
+      root = Object.create(null);
+      
+      insert(word = "") {
+        if (!word) return; // 简单判断
+        let node = this.root;
+        for (const v of word) {
+          if (!node[v]) {
+            node[v] = Object.create(null);
+          }
+          node = node[v];
+        }
+        if (!($ in node)) {
+          node[$] = 1; // 此字符串出现第一次
+        } else {
+          node[$]++;
+        }
+      }
+
+      most() {
+        let max = 0;
+        let maxWords = null;
+        const Traverse = (node, word) => {
+          if (node[$]) {
+            if (max < node[$]) {
+              max = node[$];
+              maxWords = word;
+            }
+          }
+          for (const key in node) {
+            // node.hasOwnProperty(key)  // 若不采用Object.create(null) 可以采用此判断
+            Traverse(node[key], word + key)
+          }
+        }
+        Traverse(this.root, "");
+        console.log(max, maxWords, this.root);
+      }
+    }
+
+    function randomWord(length) {
+      let word = "";
+      for (let index = 0; index < length; index++) {
+        word+= String.fromCharCode(Math.random() * 26 + "a".charCodeAt(0)); // 仅小写字母
+      }
+      return word;
+    }
+
+    let trie = new Trie();
+    
+    for (let index = 0; index < 1000000; index++) {
+      trie.insert(randomWord(5));
+    }
+
+    trie.most();
+  </script>
+</body>
+</html>
