@@ -34,6 +34,9 @@
         let max = 0;
         let maxWords = null;
         const Traverse = (node, word) => {
+          /**
+           * 这里只能找出一个, 其实有可能是多个
+           */
           if (node[$]) {
             if (max < node[$]) {
               max = node[$];
