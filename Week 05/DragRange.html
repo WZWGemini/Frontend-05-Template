@@ -20,7 +20,8 @@
     hello world hello world hello world hello world hello world hello world hello world hello world hello world hello world
     hello world hello world hello world hello world hello world hello world hello world hello world hello world hello world
   </div>
-  <div id="draggable" style="width: 100px; height: 100px; background-color: pink;"></div>
+  <div id="draggable" style="display: inline-block;width: 100px; height: 100px; background-color: pink;"></div>
+  <script src="https://cdn.bootcdn.net/ajax/libs/lodash.js/4.17.20/lodash.min.js"></script>
   <script>
     /**
      * 使用cssOM 及 createRange 实现拖拽到文本流中的效果
@@ -42,6 +43,11 @@
     let ranges = createRanges(container);
 
     function getNearest(x, y, ranges) {
+      /**
+       * 节点比较多时 性能非常差
+       * 1. 优化查找目标range的算法
+       * 2. 限制触发频率
+       */ 
       let min = Number.MAX_SAFE_INTEGER;
       let minRange = null;
       for (const range of ranges) {
@@ -60,10 +66,10 @@
         document.removeEventListener("mousemove", move);
         document.removeEventListener("mouseup", up);
       }
-      let move = (e) => {
+      let move = _.throttle((e) => {
         let range = getNearest(e.clientX, e.clientY, ranges);
         range.insertNode(draggable);
-      }
+      }, 100);
       document.addEventListener("mousemove", move);
       document.addEventListener("mouseup", up);
     })
