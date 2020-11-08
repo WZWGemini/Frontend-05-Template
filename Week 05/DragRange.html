@@ -42,10 +42,9 @@
     let ranges = createRanges(container);
 
     function getNearest(x, y, ranges) {
-      let min = Number.MIN_SAFE_INTEGER;
+      let min = Number.MAX_SAFE_INTEGER;
       let minRange = null;
       for (const range of ranges) {
-        console.log(x, y, range);
         let rect = range.getBoundingClientRect();
         let d = (rect.x - x) ** 2 + (rect.y - y) ** 2;
         if (d < min) {
