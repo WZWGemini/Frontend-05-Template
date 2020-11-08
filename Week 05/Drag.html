@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drag</title>
+</head>
+<body>
+  <div id="draggable" style="width: 100px; height: 100px; background-color: pink;"></div>
+  <script>
+    /**
+     * 性能优化 只有在mouseDown之后才进行mouseMove与mouseUp的注册
+     * 如果一开始就注册好，那么在事件触发的时候就会执行一次这个监听回调，
+     * 即使通过flag避免执行，也是会有函数执行的性能消耗。
+     */
+    let baseX = 0, baseY = 0;
+    draggable.addEventListener("mousedown", (e) => {
+      console.log(e)
+      let startX = e.clientX, startY = e.clientY;
+      let up = (e) => {
+        baseX = baseX + e.clientX - startX;
+        baseY = baseY + e.clientY - startY;
+        document.removeEventListener("mousemove", move);
+        document.removeEventListener("mouseup", up);
+      }
+      let move = (e) => {
+        /**
+         * 为什么在document上进行监听 ？
+         * 1. 现代浏览器上在document上监听即使鼠标移除窗口也能有鼠标捕获的效果
+         * 2. 如果在目标节点上监听，会存在移动过快导致移除目标节点区域，进而不能达到预期效果
+        */
+        draggable.style.transform = `translate(${baseX + e.clientX - startX}px, ${baseY + e.clientY - startY}px)`;
+      }
+      document.addEventListener("mousemove", move);
+      document.addEventListener("mouseup", up);
+    })
+  </script>
+</body>
+</html>

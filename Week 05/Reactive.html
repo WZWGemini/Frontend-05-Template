@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reactive</title>
+</head>
+<body>
+  <script src="./Reactive.js"></script>
+  <script>
+    let a = reactive({
+      name: "geek",
+      age: 3,
+      skill: {
+        html: 100,
+      }
+    })
+
+    effect(() => {
+      console.log("effect 1", a.name);
+    })
+
+    effect(() => {
+      console.log("effect 2", a.name, a.skill.html);
+    })
+
+    effect(() => {
+      console.log("effect 3", a.age);
+    })
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RgbRange</title>
+</head>
+<body>
+  <div id="colorWrapper">
+    <input type="range" id="r" min=0 max=255>
+    <input type="range" id="g" min=0 max=255>
+    <input type="range" id="b" min=0 max=255>
+
+    <div id="colorShow" style="width: 100px;height: 100px;"></div>
+  </div>
+  
+  <script src="./Reactive.js"></script>
+  <script>
+    let color = reactive({
+      r: 0,
+      g: 0,
+      b: 0,
+    });
+
+    effect(() => {
+      /**
+       * 冷知识：若节点包含ID属性 则会在全局作用于上创建对应的节点变量
+       * */
+      colorWrapper.children.r.value = color.r;
+      colorWrapper.children.g.value = color.g;
+      colorWrapper.children.b.value = color.b;
+
+      colorShow.style.backgroundColor = `rgb(${color.r}, ${color.g}, ${color.b})`
+    });
+    colorWrapper.children.r.addEventListener("input", (e) => {
+      color.r = parseInt(e.target.value);
+    })
+
+    colorWrapper.children.g.addEventListener("input", (e) => {
+      color.g = parseInt(e.target.value);
+    })
+
+    colorWrapper.children.b.addEventListener("input", (e) => {
+      color.b = parseInt(e.target.value);
+    })
+    
+
+
+  </script>
+</body>
+</html>
